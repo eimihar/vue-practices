@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
   <title></title>
   <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
@@ -26,7 +27,7 @@
         <div class="form-group">
         <div class="input-group">
           <input type="text" v-model="new_todo" @keyup.enter="add" placeholder="What do you want to do today?" class="form-control">
-          <button class="btn btn-primary" @click="add">Add to checklist</button>
+          <button class="btn btn-primary" @click="add">+</button>
         </div>
       </div>
       </div>
