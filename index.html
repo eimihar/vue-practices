@@ -14,6 +14,10 @@
       color: blue;
     }
 
+    .list-todos {
+      padding-left: 17px;
+    }
+
     .list-todos li.completed {
       text-decoration: line-through;
       opacity: 0.6;
@@ -36,7 +40,7 @@
         <p v-if="todos.length > 0">Select to complete your checklist below :</p>
         <ul class="list-todos">
           <li v-for="todo in todos" :class="{completed: todo.is_completed}" @click="toggleComplete(todo)">
-            {{ todo.label }}
+            {{ todo.label }} <a style="float: right;" @click="remove(todo)">x</a>
           </li>
         </ul>
         <p v-if="todos.length == 0">Please add an item above</p>
@@ -62,7 +66,7 @@
             }
           }
 
-          console.log(this.todos);
+          this.persist();
         },
         add: function() {
           // Do a simple validation if it's empty.
@@ -79,9 +83,30 @@
           this.new_todo = '';
 
           this.$forceUpdate();
+
+          this.persist();
+        },
+        remove: function(todo) {
+          // this code use javascript filter() and function shorthand () => {}
+          this.todos = this.todos.filter((item) => {
+            return todo != item;
+          });
+
+          this.persist();
+        },
+        persist: function() {
+          // persist our todos into localStorage
+          // this function to be called whenever our todos list is changed
+          window.localStorage.setItem('todos', JSON.stringify(this.todos));
+        },
+        load: function() {
+          // load from javascript localStorage
+          // to be called only when page is loaded
+          this.todos = window.localStorage.getItem('todos') ? JSON.parse(window.localStorage.getItem('todos')) : [];
         }
       }
-    })
+    });
+    todoApp.load();
   </script>
 </body>
 </html>
