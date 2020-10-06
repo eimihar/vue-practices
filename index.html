@@ -33,9 +33,9 @@
       </div>
       <div class="card-body">
         <h3>Todo Checklist</h3>
-        <p v-if="todos.length > 0">Please select from the list to complete your todo</p>
+        <p v-if="todos.length > 0">Select to complete your checklist below :</p>
         <ul class="list-todos">
-          <li v-for="(todo, index) in todos" :key="todo.index" :class="{completed: todo.is_completed}" @click="complete(todo)">
+          <li v-for="todo in todos" :class="{completed: todo.is_completed}" @click="toggleComplete(todo)">
             {{ todo.label }}
           </li>
         </ul>
@@ -51,9 +51,9 @@
         todos: []
       },
       methods: {
-        complete: function(todo) {
-          // when you use 'this.'' you can access data object, or the method.
-          for (var i in this.todos) {
+        toggleComplete: function(todo) {
+          // When you use 'this.'' you can access data object, or the method.
+          for (var i in this.todos) { // Loop our list to compare the object
             if (todo == this.todos[i]) {
               if (todo.is_completed)
                 todo.is_completed = false;
@@ -65,16 +65,17 @@
           console.log(this.todos);
         },
         add: function() {
-          // do a simple validation if it's empty.
+          // Do a simple validation if it's empty.
           if (!this.new_todo)
             return alert('Input cannot be empty.');
 
+          // Push a new object into our todo list
           this.todos.push({
             label: this.new_todo,
             is_completed: false
           });
 
-          // then clear the input
+          // Then clear the input
           this.new_todo = '';
 
           this.$forceUpdate();
