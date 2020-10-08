@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Periodic Table</title>
+   <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.20.0/axios.min.js"></script>
+  <style type="text/css">
+    .tp td {
+      width: 5.55%;
+      cursor: pointer;
+      padding: 0px;
+      text-align: center;
+      border-top: 0px;
+    }
+
+    .tp-el {
+      padding-bottom: 8px;
+    }
+
+    .tp-number {
+      color: grey;
+      opacity: 0.5;
+    }
+
+    .tp-symbol {
+      font-size: 25px;
+      color: darkslateblue;
+    }
+
+    .tp-selected td {
+      border-bottom: 1px dashed gainsboro;
+    }
+
+    .tp-selected tr td:first-child {
+      font-weight: bold;
+      padding-right: 10px;
+    }
+
+    .tp {
+      width: 100%;
+    }
+
+    .filtered {
+      opacity: 0.3;
+    }
+
+    .container {
+      margin-top: 10px;
+      padding-bottom: 50px;
+    }
+  </style>
+</head>
+<body>
+  <div id="periodic-app">
+    <div class="container">
+      <div style="margin-bottom: 10px;">
+        <input type="text" class="form-control" @keyup="filter" v-model="textFilter" placeholder="Filter by name, symbol, number, category, discoverer, phase or period">
+      </div>
+      <div v-if="selected">
+        <h3>
+          <a href="javascript:;" @click="selected = null">Elements</a> .
+          {{ selected.name }}</h3>
+        <table class="tp-selected">
+          <tr v-for="(v, key) in selected">
+            <td>{{ key }}</td>
+            <td>
+              <template v-if="key == 'source' || key == 'spectral_img'">
+                <a :href="v" target="_blank">
+                  {{ v }}
+                </a>
+              </template>
+              <template v-else-if="key == 'category'">
+                <span style="padding: 0 5px;" :style="{background: colors[v]}">{{ v }}</span>
+              </template>
+              <template v-else>{{ v }}</template>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <table class="table tp" v-if="elements.length > 0 && !selected">
+        <tr v-for="y in range(10)">
+          <td v-for="x in range(18)" :class="{'no-element': !getElementByPos(x, y)}" :set="el = getElementByPos(x, y)">
+            <div class="tp-el" :class="{filtered: !!filtered[el.name]}" v-if="!!getElementByPos(x, y)" @click="select(getElementByPos(x, y))" :style="{'background': colors[el.category]}">
+              <div class="tp-number">{{ el.number }}</div>
+              <div class="tp-symbol">{{ el.symbol }}</div>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+  <script type="text/javascript">
+    var inArray = function(item, haystack) {
+      return haystack.filter((i) => {
+        return item == i;
+      }).length > 0;
+    };
+
+    var range = function(x) {
+      var nums = [];
+
+      for (var i = 1; i <= x; i++)
+        nums.push(i);
+
+      return nums;
+    };
+    var app = new Vue({
+      el: '#periodic-app',
+      data() {
+        return {
+          selected: null,
+          colors: {
+            "diatomic nonmetal": '#f0ff8f',
+            "noble gas": '#c0ffff',
+            "alkali metal": '#ff9d9d',
+            "alkaline earth metal": '#ffdead',
+            "metalloid": '#aadd33',
+            "polyatomic nonmetal": '#cccc99',
+            "post-transition metal": '#cccccc',
+            "transition metal": '#ffc0c0',
+            "lanthanide": '#ffbfff',
+            "actinide": '#ff99cc',
+             "unknown, probably transition metal": 'gold',
+             "unknown, probably post-transition metal": 'gold',
+             "unknown, probably metalloid": 'gold',
+             "unknown, predicted to be noble gas": 'gold',
+             "unknown, but predicted to be an alkali metal": 'gold'
+          },
+          elements: [],
+          filtered: [],
+          origins: [],
+          map: {},
+          pos: {},
+          categories: [],
+          user: {
+            elements: {}
+          },
+          textFilter: null
+        }
+      },
+      methods: {
+        filter: function() {
+          this.filtered = {};
+
+          if (!this.textFilter)
+            return;
+
+          this.selected = null;
+
+          var keys = ['name', 'symbol', 'number', 'category', 'period', 'discovered_by', 'phase'];
+
+          this.filtered = this.origins.filter((el) => {
+            for (var i in keys) {
+              if ((el[keys[i]] + '').toLowerCase().indexOf(this.textFilter) != -1)
+                return false;
+            }
+
+            return true;
+          }).reduce((map, el) => {
+            map[el.name] = true;
+
+            return map;
+          }, {});
+
+          console.log(this.filtered);
+        },
+        select: function(el) {
+          console.log(el);
+          this.selected = el;
+        },
+        getElementByPos: function(x, y) {
+          if (!this.pos[y])
+            return null;
+
+          if (!this.pos[y][x])
+            return null;
+
+          return this.map[this.pos[y][x]];
+        },
+        load: async function() {
+          var src = 'https://raw.githubusercontent.com/Bowserinator/Periodic-Table-JSON/master/PeriodicTableJSON.json';
+
+          // load
+          this.elements = (await axios.get(src)).data.elements;
+
+          this.origins = this.elements;
+
+          // build from elements
+          for (var i in this.elements) {
+            var el = this.elements[i];
+
+            if (!this.pos[el.ypos])
+              this.pos[el.ypos] = {};
+
+            if (!this.pos[el.ypos][el.xpos])
+              this.pos[el.ypos][el.xpos] = {};
+
+            this.pos[el.ypos][el.xpos] = el.name;
+
+            this.map[el.name] = el;
+
+            if (!inArray(el.category, this.categories))
+              this.categories.push(el.category);
+          }
+
+          console.log(this.pos);
+
+
+          console.log(this.categories);
+        }
+      }
+    });
+
+    app.load();
+  </script>
+</body>
+</html>
