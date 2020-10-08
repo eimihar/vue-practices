@@ -189,7 +189,7 @@
 
           this.filtered = this.origins.filter((el) => {
             for (var i in keys) {
-              if ((el[keys[i]] + '').toLowerCase().indexOf(this.textFilter) != -1)
+              if ((el[keys[i]] + '').toLowerCase().indexOf(this.textFilter.toLowerCase()) != -1)
                 return false;
             }
 
